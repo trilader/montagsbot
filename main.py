@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import config
@@ -8,14 +8,15 @@ import smtplib
 from email.mime.text import MIMEText
 
 
-def send_mail(from, msg):
+def send_mail(sender, msg):
     msgs = []
     for email in config.EMAILS:
-        msg = MIMEText(msg)
+        msg = MIMEText("{}: {}".format(sender,msg))
         msg["Subject"] = "Telegram Message"
-        msg["From"] = "Montagsbot"
+        msg["From"] = "Montagsbot <no-reply@steckdo.se>"
         msg["To"] = email
-        msgs.add(msg)
+        msg["X-Telegram-Bot"] = "Montagsbot"
+        msgs.append(msg)
     s = smtplib.SMTP("localhost")
     for msg in msgs:
         s.send_message(msg)
@@ -29,7 +30,7 @@ def handle_bot_message(msg):
         user=msg["from"]["first_name"]
         if chat_type == "group":
             print("Group message from {}: {}".format(user,text))
-            send_msg(user,text)
+            send_mail(user,text)
         elif chat_type == "private":
             print("Private message from {}: {}".format(user,text))
 
