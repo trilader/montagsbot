@@ -9,6 +9,10 @@ from email.mime.text import MIMEText
 
 
 def send_mail(sender, msg):
+    if sender in config.ALIASES:
+        the_sender = config.ALIASES[sender]
+    else:
+        the_sender = sender
     msgs = []
     for email in config.EMAILS:
         msg = MIMEText("{}: {}".format(sender,msg))

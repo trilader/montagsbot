@@ -1,2 +1,4 @@
 BOT_TOKEN="***** PUT YOUR TOKEN HERE *****"
+EMAILS=[]
+ALIASES={"Someone":"Someone Else"}
 
