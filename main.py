@@ -15,12 +15,13 @@ def send_mail(sender, msg):
         the_sender = sender
     msgs = []
     for email in config.EMAILS:
-        msg = MIMEText("{}: {}".format(sender,msg))
-        msg["Subject"] = "Telegram Message"
-        msg["From"] = "Montagsbot <no-reply@steckdo.se>"
-        msg["To"] = email
-        msg["X-Telegram-Bot"] = "Montagsbot"
-        msgs.append(msg)
+        mail = MIMEText("{} sagt: {}".format(the_sender,msg))
+        mail["Subject"] = "Telegram Message from {}".format(the_sender)
+        mail["From"] = "Montagsbot <no-reply@steckdo.se>"
+        mail["To"] = email
+        mail["X-Telegram-Bot"] = "Montagsbot"
+        mail["X-Telegram-Original-User"] = sender
+        msgs.append(mail)
     s = smtplib.SMTP("localhost")
     for msg in msgs:
         s.send_message(msg)
