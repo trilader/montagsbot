@@ -33,11 +33,12 @@ def handle_bot_message(msg):
     if content_type == "text":
         text=msg["text"]
         user=msg["from"]["first_name"]
+        uid=msg["from"]["id"]
         if chat_type == "group":
-            print("Group message from {}: {}".format(user,text))
+            print("Group message from {} ({}): {}".format(user,uid,text))
             send_mail(user,text)
         elif chat_type == "private":
-            print("Private message from {}: {}".format(user,text))
+            print("Private message from {} ({}): {}".format(user,uid,text))
 
 
 if __name__ == "__main__":
