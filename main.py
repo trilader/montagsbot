@@ -61,7 +61,7 @@ def xmlrpc_worker():
 
 if __name__ == "__main__":
 
-    server = SimpleXMLRPCServer(("localhost", 4711))
+    server = SimpleXMLRPCServer(("localhost", 4711),logRequests=False)
     server.register_function(handle_reply_mail)
 
     bot = telepot.Bot(config.BOT_TOKEN)
