@@ -5,8 +5,17 @@ import config
 import telepot
 import time
 import smtplib
+import threading
+import sys
 from email.mime.text import MIMEText
 from xmlrpc.server import SimpleXMLRPCServer
+
+lock = threading.Lock()
+
+
+def sprint(*args, **kwargs):
+    with lock:
+        print(*args, *kwargs)
 
 
 def send_mail(sender, msg):
@@ -36,24 +45,41 @@ def handle_bot_message(msg):
         user=msg["from"]["first_name"]
         uid=msg["from"]["id"]
         if chat_type == "group":
-            print("Group message from {} ({}): {}".format(user,uid,text))
+            sprint("Group message from {} ({}): {}".format(user,uid,text))
             send_mail(user,text)
         elif chat_type == "private":
-            print("Private message from {} ({}): {}".format(user,uid,text))
+            sprint("Private message from {} ({}): {}".format(user,uid,text))
 
 def handle_reply_mail(mail):
-    print("You've got Mail!",mail)
+    sprint("You've got Mail!",mail)
+
+
+def xmlrpc_worker():
+    server.serve_forever()
+
 
 if __name__ == "__main__":
 
     server = SimpleXMLRPCServer(("localhost", 4711))
-    server.register_functions(handle_reply_mail)
+    server.register_function(handle_reply_mail)
 
     bot = telepot.Bot(config.BOT_TOKEN)
     bot.notifyOnMessage(handle_bot_message)
-    print("Starting montagsbot")
-    print(bot.getMe())
-    print("Waiting for messages...")
+    sprint("Starting montagsbot")
+    # print(bot.getMe())
+
+    sprint("Starting email worker thread")
+    worker = threading.Thread(target=xmlrpc_worker)
+    worker.start()
+
+    sprint("Waiting for messages...")
+
     
     while True:
-        time.sleep(10)
+        try:
+            time.sleep(10)
+        except KeyboardInterrupt as ex:
+            sprint("Shutting down...")
+            server.shutdown()
+            worker.join()
+            sys.exit(0)
