@@ -6,6 +6,7 @@ import telepot
 import time
 import smtplib
 from email.mime.text import MIMEText
+from xmlrpc.server import SimpleXMLRPCServer
 
 
 def send_mail(sender, msg):
@@ -40,8 +41,14 @@ def handle_bot_message(msg):
         elif chat_type == "private":
             print("Private message from {} ({}): {}".format(user,uid,text))
 
+def handle_reply_mail(mail):
+    print("You've got Mail!",mail)
 
 if __name__ == "__main__":
+
+    server = SimpleXMLRPCServer(("localhost", 4711))
+    server.register_functions(handle_reply_mail)
+
     bot = telepot.Bot(config.BOT_TOKEN)
     bot.notifyOnMessage(handle_bot_message)
     print("Starting montagsbot")
