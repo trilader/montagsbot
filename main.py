@@ -52,6 +52,7 @@ def handle_bot_message(msg):
 
 def handle_reply_mail(mail):
     sprint("You've got Mail!",mail)
+    return True
 
 
 def xmlrpc_worker():
