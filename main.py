@@ -15,7 +15,7 @@ lock = threading.Lock()
 
 def sprint(*args, **kwargs):
     with lock:
-        print(*args, *kwargs)
+        print(*args, **kwargs)
 
 
 def send_mail(sender, msg):
