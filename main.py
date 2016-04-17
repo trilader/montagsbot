@@ -17,12 +17,19 @@ def sprint(*args, **kwargs):
     with lock:
         print(*args, **kwargs)
 
+def get_alias(sender):
+    the_alias=sender["first_name"]
 
-def send_mail(sender, msg):
-    if sender in config.ALIASES:
-        the_sender = config.ALIASES[sender]
-    else:
-        the_sender = sender
+    if int(sender["id"]) in config.ALIASES:
+        the_alias = config.ALIASES[int(sender["id"])]
+    elif "nickname" in sender:
+        the_alias = sender["nickname"]
+
+    return the_alias
+
+
+def send_mail(msg):
+    the_sender = get_alias(msg["from"])
     msgs = []
     for email in config.EMAILS:
         mail = MIMEText("{} sagt: {}".format(the_sender,msg))
