@@ -1,4 +1,5 @@
 BOT_TOKEN="***** PUT YOUR TOKEN HERE *****"
 EMAILS=[]
-ALIASES={"Someone":"Someone Else"}
+# User ID -> Alias
+ALIASES={999999999:"Nickname"}
 
