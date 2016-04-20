@@ -2,4 +2,4 @@ BOT_TOKEN="***** PUT YOUR TOKEN HERE *****"
 EMAILS=[]
 # User ID -> Alias
 ALIASES={999999999:"Nickname"}
-
+GROUP_ID=-999999999
