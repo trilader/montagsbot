@@ -61,7 +61,7 @@ def handle_bot_message(msg):
 
 def handle_reply_mail(mail):
     global msgs
-    xmsgs+=1
+    msgs+=1
     sprint("You've got Mail!",msgs,"so far")
     the_mail=email.message_from_string(mail)
     the_payload=the_mail.get_payload()
