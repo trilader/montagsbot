@@ -71,10 +71,10 @@ def handle_reply_mail(mail):
     if type(the_payload) is list:
         the_real_payload += "Komisches Multipart Zeugs: "
         for i,subload in enumerate(the_payload):
-            if type(subload) is str:
-                the_real_payload+="["+i+"]: "+subload
-
-    if type(the_payload) is str:
+            the_subload=subload.get_payload()
+            if type(the_subload) is str:
+                the_real_payload+="["+i+"]: "+the_subload
+    elif type(the_payload) is str:
         the_real_payload=the_payload
     else:
         sprint("Unsupported payload type", type(the_payload))
