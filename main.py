@@ -51,11 +51,10 @@ def handle_bot_message(msg):
     if content_type == "text":
         text=msg["text"]
         user=msg["from"]
-        sprint(msg)
         uid=msg["from"]["id"]
         if chat_type == "group":
             sprint("Group message from {} ({}): {}".format(user,uid,text))
-            #send_mail(msg)
+            send_mail(msg)
         elif chat_type == "private":
             sprint("Private message from {} ({}): {}".format(user,uid,text))
 
