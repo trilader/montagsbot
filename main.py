@@ -54,7 +54,10 @@ def handle_bot_message(msg):
         uid=msg["from"]["id"]
         if chat_type == "group":
             sprint("Group message from {} ({}): {}".format(user,uid,text))
-            send_mail(msg)
+            if config.OFFLINE_MODE or config.TEST_MODE:
+                sprint("Not sending email in offline or test mode")
+            else:
+                send_mail(msg)
         elif chat_type == "private":
             sprint("Private message from {} ({}): {}".format(user,uid,text))
 
@@ -90,7 +93,11 @@ def handle_reply_mail(mail):
     #sprint("Mail from:", the_sender)
     #sprint("Mail text:", the_payload)
     the_msg="{} sagt: {}".format(the_sender,the_payload)
-    bot.sendMessage(config.GROUP_ID,the_msg)
+    if config.OFFLINE_MODE or config.TEST_MODE:
+        sprint("The message:",the_msg)
+    else:
+        bot.sendMessage(config.GROUP_ID,the_msg)
+
     return True
 
 
@@ -102,9 +109,12 @@ if __name__ == "__main__":
 
     server = SimpleXMLRPCServer(("localhost", 4711),logRequests=False)
     server.register_function(handle_reply_mail)
-
-    bot = telepot.Bot(config.BOT_TOKEN)
-    bot.notifyOnMessage(handle_bot_message)
+    
+    if config.OFFLINE_MODE:
+        sprint("Starting in offline mode")
+    else:
+        bot = telepot.Bot(config.BOT_TOKEN)
+        bot.notifyOnMessage(handle_bot_message)
     sprint("Starting montagsbot")
     # print(bot.getMe())
 

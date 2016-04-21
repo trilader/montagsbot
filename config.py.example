@@ -3,3 +3,5 @@ EMAILS=[]
 # User ID -> Alias
 ALIASES={999999999:"Nickname"}
 GROUP_ID=-999999999
+TEST_MODE=False
+OFFLINE_MODE=False
