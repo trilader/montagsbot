@@ -35,7 +35,7 @@ def send_mail(msg):
     for email in config.EMAILS:
         mail = MIMEText("{} sagt: {}".format(the_sender,msg["text"]))
         mail["Subject"] = "Telegram Message from {}".format(the_sender)
-        mail["From"] = "Montagsbot <no-reply@steckdo.se>"
+        mail["From"] = "Montagsbot <montagsbot@schroedingers-bit.net>"
         mail["To"] = email
         mail["X-Telegram-Bot"] = "Montagsbot"
         mail["X-Telegram-Original-User"] = msg["from"]["id"]
