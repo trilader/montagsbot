@@ -8,7 +8,7 @@ if __name__ == "__main__":
     for line in sys.stdin:
         s+=line
 
-    print("Mail is:",s)
+    #print("Mail is:",s)
 
     remote = xmlrpc.client.ServerProxy("http://localhost:4711")
     try:
