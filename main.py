@@ -38,7 +38,7 @@ def send_mail(msg):
         mail["From"] = "Montagsbot <montagsbot@schroedingers-bit.net>"
         mail["To"] = email
         mail["X-Telegram-Bot"] = "Montagsbot"
-        mail["X-Telegram-Original-User"] = msg["from"]["id"]
+        mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
         msgs.append(mail)
     s = smtplib.SMTP("localhost")
     for msg in msgs:
