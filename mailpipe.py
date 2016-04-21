@@ -4,9 +4,9 @@ import sys
 import xmlrpc.client
 
 if __name__ == "__main__":
-    s=""
-    for line in sys.stdin:
-        s+=line
+    s=sys.stdin.read()
+    if type(s) is bytes:
+        s=s.decode("utf-8")
 
     #print("Mail is:",s)
 
