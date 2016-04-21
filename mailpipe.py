@@ -4,7 +4,7 @@ import sys
 import xmlrpc.client
 
 if __name__ == "__main__":
-    s=sys.stdin.read()
+    s=sys.stdin.buffer.read()
     if type(s) is bytes:
         s=s.decode("utf-8")
 
