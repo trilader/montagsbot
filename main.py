@@ -65,24 +65,9 @@ def handle_reply_mail(mail):
     global msgs
     msgs+=1
     sprint("You've got Mail!",msgs,"so far")
+
     the_mail=email.message_from_string(mail)
-    the_payload=the_mail.get_payload()
     
-    the_real_payload=""
-
-    if type(the_payload) is list:
-        the_real_payload += "Komisches Multipart Zeugs: "
-        for i,subload in enumerate(the_payload):
-            the_subload=subload.get_payload()
-            if type(the_subload) is str:
-                the_real_payload+="["+i+"]: "+the_subload
-    elif type(the_payload) is str:
-        the_real_payload=the_payload
-    else:
-        sprint("Unsupported payload type", type(the_payload))
-        if hasattr(the_payload,'__str__'):
-            sprint("the_payload.__str__():",the_payload)
-
     the_sender=the_mail["from"]
     sender_parts=the_sender.split(" ")
     if len(sender_parts)!=2:
@@ -90,9 +75,16 @@ def handle_reply_mail(mail):
         the_sender=sender_parts[0].strip("<")
     else:
         the_sender=sender_parts[0]
-    #sprint("Mail from:", the_sender)
-    #sprint("Mail text:", the_payload)
-    the_msg="{} sagt: {}".format(the_sender,the_payload)
+ 
+    the_text=""
+    if the_mail.is_multipart():
+        for part in the_mail.walk():
+            if part.get_content_type()=="text/plain":
+                the_text+=part.get_payload()
+    else:
+        the_text=the_mail.get_payload()
+
+    the_msg="{} sagt: {}".format(the_sender,the_text)
     if config.OFFLINE_MODE or config.TEST_MODE:
         sprint("The message:",the_msg)
     else:
