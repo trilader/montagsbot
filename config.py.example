@@ -1,4 +1,7 @@
 BOT_TOKEN="***** PUT YOUR TOKEN HERE *****"
+BOT_NAME="MyBot"
+BOT_MAIL_FROM="MyBot <bot@domain.tld>"
+
 EMAILS=[]
 # User ID -> Alias
 ALIASES={999999999:"Nickname"}

@@ -11,6 +11,8 @@ import email
 from email.mime.text import MIMEText
 from xmlrpc.server import SimpleXMLRPCServer
 
+__version__="0.1.0"
+
 lock = threading.Lock()
 msgs=0
 
@@ -35,9 +37,9 @@ def send_mail(msg):
     for email in config.EMAILS:
         mail = MIMEText("{} sagt: {}".format(the_sender,msg["text"]))
         mail["Subject"] = "Telegram Message from {}".format(the_sender)
-        mail["From"] = "Montagsbot <montagsbot@schroedingers-bit.net>"
+        mail["From"] = config.BOT_EMAIL_FROM
         mail["To"] = email
-        mail["X-Telegram-Bot"] = "Montagsbot"
+        mail["X-Telegram-Bot"] = config.BOT_NAME
         mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
         msgs.append(mail)
     s = smtplib.SMTP("localhost")
@@ -64,7 +66,6 @@ def handle_bot_message(msg):
 def handle_reply_mail(mail):
     global msgs
     msgs+=1
-    sprint("You've got Mail!",msgs,"so far")
 
     the_mail=email.message_from_string(mail)
     
@@ -107,7 +108,7 @@ if __name__ == "__main__":
     else:
         bot = telepot.Bot(config.BOT_TOKEN)
         bot.notifyOnMessage(handle_bot_message)
-    sprint("Starting montagsbot")
+    sprint("Starting",config.BOT_NAME)
     # print(bot.getMe())
 
     sprint("Starting email worker thread")

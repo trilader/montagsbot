@@ -3,6 +3,8 @@
 import sys
 import xmlrpc.client
 
+__version__ = "0.1.0"
+
 if __name__ == "__main__":
     s=sys.stdin.buffer.read()
     if type(s) is bytes:

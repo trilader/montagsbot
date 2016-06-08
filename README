@@ -1,0 +1,9 @@
+This is a bot that acts as a Telegram to Email gateway. This is used to relay all messages from a group chat to email and the other way around.
+
+To receive mail get your mail server (e.g. postfix) to execute mailpipe.py and write the mail to stdin of the python process.
+
+For postfix you could put something like
+```
+mybot-forward: |/path/to/mailpipe.py
+```
+in /etc/aliases. Don't forget to run ```postalias /etc/aliases`` afterwards. Also make sure that mailpipe.py is executable.
