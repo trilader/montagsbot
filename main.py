@@ -66,6 +66,9 @@ def handle_bot_message(msg):
                 send_mail(msg)
         elif chat_type == "private":
             sprint("Private message from {} ({}): {}".format(user,uid,text))
+            bot.sendMessage(config.GROUP_ID, "{} tuschelt!".format(get_alias(msg["from"])))
+            msg["text"] = "*tuschel*"
+            send_mail(msg)
 
 def handle_reply_mail(mail):
     global msgs
