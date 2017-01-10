@@ -165,7 +165,7 @@ if __name__ == "__main__":
         sprint("Starting in offline mode")
     else:
         bot = telepot.Bot(config.BOT_TOKEN)
-        bot.notifyOnMessage(handle_bot_message)
+        bot.message_loop(handle_bot_message)
     sprint("Starting", config.BOT_NAME)
     # print(bot.getMe())
 
