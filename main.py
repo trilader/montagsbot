@@ -16,17 +16,19 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from xmlrpc.server import SimpleXMLRPCServer
 
-__version__="0.1.0"
+__version__ = "0.1.0"
 
 lock = threading.Lock()
-msgs=0
+msgs = 0
+
 
 def sprint(*args, **kwargs):
     with lock:
         print(*args, **kwargs)
 
+
 def get_alias(sender):
-    the_alias=sender["first_name"]
+    the_alias = sender["first_name"]
 
     if int(sender["id"]) in config.ALIASES:
         the_alias = config.ALIASES[int(sender["id"])]
@@ -36,16 +38,16 @@ def get_alias(sender):
     return the_alias
 
 
-def send_mail(msg,telegram=True):
+def send_mail(msg, telegram=True):
     if telegram:
         the_sender = get_alias(msg["from"])
     else:
         the_sender = msg["from"]
-    msgs = []
-    for email in config.EMAILS:
+    mails_to_send = []
+    for forward_email in config.EMAILS:
         mail = MIMEMultipart()
         if "text" in msg:
-            mail.attach(MIMEText("{} sagt: {}".format(the_sender,msg["text"])))
+            mail.attach(MIMEText("{} sagt: {}".format(the_sender, msg["text"])))
         if "photo" in msg:
             with open(msg["photo"], 'rb') as fp:
                 mail.attach(MIMEImage(fp.read()))
@@ -61,34 +63,35 @@ def send_mail(msg,telegram=True):
                     mail.attach(MIMEApplication(fp.read()))
         mail["Subject"] = "Telegram Message from {}".format(the_sender)
         mail["From"] = config.BOT_EMAIL_FROM
-        mail["To"] = email
+        mail["To"] = forward_email
         mail["X-Telegram-Bot"] = config.BOT_NAME
         if telegram:
             mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
-        msgs.append(mail)
+        mails_to_send.append(mail)
     s = smtplib.SMTP("localhost")
-    for msg in msgs:
-        s.send_message(msg)
+    for mail in mails_to_send:
+        s.send_message(mail)
     s.quit()
 
 
 def handle_bot_message(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     if content_type == "text":
-        text=msg["text"]
-        user=msg["from"]
-        uid=msg["from"]["id"]
+        text = msg["text"]
+        user = msg["from"]
+        uid = msg["from"]["id"]
         if chat_type == "group":
-            sprint("Group message from {} ({}): {}".format(user,uid,text))
+            sprint("Group message from {} ({}): {}".format(user, uid, text))
             if config.OFFLINE_MODE or config.TEST_MODE:
                 sprint("Not sending email in offline or test mode")
             else:
                 send_mail(msg)
         elif chat_type == "private":
-            sprint("Private message from {} ({}): {}".format(user,uid,text))
-            bot.sendMessage(config.GROUP_ID, "{} tuschelt!".format(get_alias(msg["from"])))
-            msg["text"] = "*tuschel*"
-            send_mail(msg)
+            sprint("Private message from {} ({}): {}".format(user, uid, text))
+            # This is intended behaviour. This bot doesn't respond to private messages
+            # bot.sendMessage(config.GROUP_ID, "{} tuschelt!".format(get_alias(msg["from"])))
+            # msg["text"] = "*tuschel*"
+            # send_mail(msg)
     elif content_type in ['audio', 'document', 'photo', 'sticker', 'video', 'voice', 'contact', 'location', 'venue']:
         with tempfile.TemporaryDirectory() as tmpdir:
             if content_type == 'photo':
@@ -107,27 +110,27 @@ def handle_bot_message(msg):
 
 def handle_reply_mail(mail):
     global msgs
-    msgs+=1
+    msgs += 1
 
-    the_mail=email.message_from_string(mail)
+    the_mail = email.message_from_string(mail)
     
-    the_sender=the_mail["from"]
-    sender_parts=the_sender.split(" ")
-    if len(sender_parts)!=2:
-        sender_parts=sender_parts[0].split("@")
-        the_sender=sender_parts[0].strip("<")
+    the_sender = the_mail["from"]
+    sender_parts = the_sender.split(" ")
+    if len(sender_parts) != 2:
+        sender_parts = sender_parts[0].split("@")
+        the_sender = sender_parts[0].strip("<")
     else:
-        the_sender=sender_parts[0]
+        the_sender = sender_parts[0]
  
-    the_text=""
+    the_text = ""
     if the_mail.is_multipart():
         for part in the_mail.walk():
-            if part.get_content_type()=="text/plain":
-                the_text+=part.get_payload()
+            if part.get_content_type() == "text/plain":
+                the_text += part.get_payload()
             elif not (part.get_content_type().startswith('message/') or part.get_content_type().startswith('multipart/')):
                 filename = part.get_filename('file.bin')
                 if config.OFFLINE_MODE or config.TEST_MODE:
-                    sprint("Received file:",filename)
+                    sprint("Received file:", filename)
                 else:
                     content = part.get_payload()
                     with tempfile.TemporaryDirectory() as tmpdir:
@@ -135,16 +138,16 @@ def handle_reply_mail(mail):
                             fp.write(content)
                         with open(tmpdir+'/file', 'rb') as fp:
                             bot.sendDocument(config.GROUP_ID, (filename, fp), caption='Gesendet von: {}'.format(the_sender))
-                        send_mail({"from": the_sender, "document": tmpdir+'/file'},telegram=False)
+                        send_mail({"from": the_sender, "document": tmpdir+'/file'}, telegram=False)
     else:
-        the_text=the_mail.get_payload()
+        the_text = the_mail.get_payload()
 
-    the_msg="{} sagt: {}".format(the_sender,the_text)
+    the_msg = " {} sagt: {}".format(the_sender, the_text)
     if config.OFFLINE_MODE or config.TEST_MODE:
-        sprint("The message:",the_msg)
+        sprint("The message:", the_msg)
     else:
-        bot.sendMessage(config.GROUP_ID,the_msg)
-        send_mail({"from": the_sender, "text": the_text},telegram=False)
+        bot.sendMessage(config.GROUP_ID, the_msg)
+        send_mail({"from": the_sender, "text": the_text}, telegram=False)
 
     return True
 
@@ -155,7 +158,7 @@ def xmlrpc_worker():
 
 if __name__ == "__main__":
 
-    server = SimpleXMLRPCServer(("localhost", 4711),logRequests=False)
+    server = SimpleXMLRPCServer(("localhost", 4711), logRequests=False)
     server.register_function(handle_reply_mail)
     
     if config.OFFLINE_MODE:
@@ -163,7 +166,7 @@ if __name__ == "__main__":
     else:
         bot = telepot.Bot(config.BOT_TOKEN)
         bot.notifyOnMessage(handle_bot_message)
-    sprint("Starting",config.BOT_NAME)
+    sprint("Starting", config.BOT_NAME)
     # print(bot.getMe())
 
     sprint("Starting email worker thread")
@@ -172,7 +175,6 @@ if __name__ == "__main__":
 
     sprint("Waiting for messages...")
 
-    
     while True:
         try:
             time.sleep(10)

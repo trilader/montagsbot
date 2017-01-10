@@ -1,10 +1,10 @@
-BOT_TOKEN="***** PUT YOUR TOKEN HERE *****"
-BOT_NAME="MyBot"
-BOT_MAIL_FROM="MyBot <bot@domain.tld>"
+BOT_TOKEN = "***** PUT YOUR TOKEN HERE *****"
+BOT_NAME = "MyBot"
+BOT_MAIL_FROM = "MyBot <bot@domain.tld>"
 
-EMAILS=[]
+EMAILS = []
 # User ID -> Alias
-ALIASES={999999999:"Nickname"}
-GROUP_ID=-999999999
-TEST_MODE=False
-OFFLINE_MODE=False
+ALIASES = {999999999: "Nickname"}
+GROUP_ID = -999999999
+TEST_MODE = False
+OFFLINE_MODE = False
