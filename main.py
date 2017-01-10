@@ -9,7 +9,11 @@ import threading
 import sys
 import email
 import tempfile
-from email.mime.text import MIMEText, MIMEAudio, MIMEApplication, MIMEImage, MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.audio import MIMEAudio
+from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
 from xmlrpc.server import SimpleXMLRPCServer
 
 __version__="0.1.0"
