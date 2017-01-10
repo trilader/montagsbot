@@ -8,7 +8,8 @@ import smtplib
 import threading
 import sys
 import email
-from email.mime.text import MIMEText
+import tempfile
+from email.mime.text import MIMEText, MIMEAudio, MIMEApplication, MIMEImage, MIMEMultipart
 from xmlrpc.server import SimpleXMLRPCServer
 
 __version__="0.1.0"
@@ -31,16 +32,35 @@ def get_alias(sender):
     return the_alias
 
 
-def send_mail(msg):
-    the_sender = get_alias(msg["from"])
+def send_mail(msg,telegram=True):
+    if telegram:
+        the_sender = get_alias(msg["from"])
+    else:
+        the_sender = msg["from"]
     msgs = []
     for email in config.EMAILS:
-        mail = MIMEText("{} sagt: {}".format(the_sender,msg["text"]))
+        mail = MIMEMultipart()
+        if "text" in msg:
+            mail.attach(MIMEText("{} sagt: {}".format(the_sender,msg["text"])))
+        if "photo" in msg:
+            with open(msg["photo"], 'rb') as fp:
+                mail.attach(MIMEImage(fp.read()))
+        if "audio" in msg:
+            with open(msg["audio"], 'rb') as fp:
+                mail.attach(MIMEAudio(fp.read()))
+        if "voice" in msg:
+            with open(msg["voice"], 'rb') as fp:
+                mail.attach(MIMEAudio(fp.read()))
+        for i in ['document', 'sticker', 'video', 'contact', 'location', 'venue']:
+            if i in msg:
+                with open(msg[i], 'rb') as fp:
+                    mail.attach(MIMEApplication(fp.read()))
         mail["Subject"] = "Telegram Message from {}".format(the_sender)
         mail["From"] = config.BOT_EMAIL_FROM
         mail["To"] = email
         mail["X-Telegram-Bot"] = config.BOT_NAME
-        mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
+        if telegram:
+            mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
         msgs.append(mail)
     s = smtplib.SMTP("localhost")
     for msg in msgs:
@@ -62,6 +82,24 @@ def handle_bot_message(msg):
                 send_mail(msg)
         elif chat_type == "private":
             sprint("Private message from {} ({}): {}".format(user,uid,text))
+            bot.sendMessage(config.GROUP_ID, "{} tuschelt!".format(get_alias(msg["from"])))
+            msg["text"] = "*tuschel*"
+            send_mail(msg)
+    elif content_type in ['audio', 'document', 'photo', 'sticker', 'video', 'voice', 'contact', 'location', 'venue']:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            if content_type == 'photo':
+                bot.download_file(msg['photo'][-1]['file_id'], tmpdir+'/photo')
+                msg["photo"] = tmpdir+'/photo'
+                send_mail(msg)
+            else:
+                bot.download_file(msg[content_type]['file_id'], tmpdir+'/file')
+                msg[content_type] = tmpdir+'/file'
+                send_mail(msg)
+    elif content_type in ['new_chat_member', 'left_chat_member']:
+        new_msg = {"from": msg[content_type]}
+        new_msg["text"] = "*tschüss*" if content_type == 'left_chat_member' else "*hallo*"
+        send_mail(new_msg)
+
 
 def handle_reply_mail(mail):
     global msgs
@@ -82,6 +120,18 @@ def handle_reply_mail(mail):
         for part in the_mail.walk():
             if part.get_content_type()=="text/plain":
                 the_text+=part.get_payload()
+            elif not (part.get_content_type().startswith('message/') or part.get_content_type().startswith('multipart/')):
+                filename = part.get_filename('file.bin')
+                if config.OFFLINE_MODE or config.TEST_MODE:
+                    sprint("Received file:",filename)
+                else:
+                    content = part.get_payload()
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        with open(tmpdir+'/file', 'wb') as fp:
+                            fp.write(content)
+                        with open(tmpdir+'/file', 'rb') as fp:
+                            bot.sendDocument(config.GROUP_ID, (filename, fp), caption='Gesendet von: {}'.format(the_sender))
+                        send_mail({"from": the_sender, "document": tmpdir+'/file'},telegram=False)
     else:
         the_text=the_mail.get_payload()
 
@@ -90,6 +140,7 @@ def handle_reply_mail(mail):
         sprint("The message:",the_msg)
     else:
         bot.sendMessage(config.GROUP_ID,the_msg)
+        send_mail({"from": the_sender, "text": the_text},telegram=False)
 
     return True
 
