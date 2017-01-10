@@ -8,7 +8,8 @@ import smtplib
 import threading
 import sys
 import email
-from email.mime.text import MIMEText
+import tempfile
+from email.mime.text import MIMEText, MIMEAudio, MIMEApplication, MIMEImage, MIMEMultipart
 from xmlrpc.server import SimpleXMLRPCServer
 
 __version__="0.1.0"
@@ -38,7 +39,22 @@ def send_mail(msg,telegram=True):
         the_sender = msg["from"]
     msgs = []
     for email in config.EMAILS:
-        mail = MIMEText("{} sagt: {}".format(the_sender,msg["text"]))
+        mail = MIMEMultipart()
+        if "text" in msg:
+            mail.attach(MIMEText("{} sagt: {}".format(the_sender,msg["text"])))
+        if "photo" in msg:
+            with open(msg["photo"], 'rb') as fp:
+                mail.attach(MIMEImage(fp.read()))
+        if "audio" in msg:
+            with open(msg["audio"], 'rb') as fp:
+                mail.attach(MIMEAudio(fp.read()))
+        if "voice" in msg:
+            with open(msg["voice"], 'rb') as fp:
+                mail.attach(MIMEAudio(fp.read()))
+        for i in ['document', 'sticker', 'video', 'contact', 'location', 'venue']:
+            if i in msg:
+                with open(msg[i], 'rb') as fp:
+                    mail.attach(MIMEApplication(fp.read()))
         mail["Subject"] = "Telegram Message from {}".format(the_sender)
         mail["From"] = config.BOT_EMAIL_FROM
         mail["To"] = email
@@ -69,6 +85,21 @@ def handle_bot_message(msg):
             bot.sendMessage(config.GROUP_ID, "{} tuschelt!".format(get_alias(msg["from"])))
             msg["text"] = "*tuschel*"
             send_mail(msg)
+    elif content_type in ['audio', 'document', 'photo', 'sticker', 'video', 'voice', 'contact', 'location', 'venue']:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            if content_type == 'photo':
+                bot.download_file(msg['photo'][-1]['file_id'], tmpdir+'/photo')
+                msg["photo"] = tmpdir+'/photo'
+                send_mail(msg)
+            else:
+                bot.download_file(msg[content_type]['file_id'], tmpdir+'/file')
+                msg[content_type] = tmpdir+'/file'
+                send_mail(msg)
+    elif content_type in ['new_chat_member', 'left_chat_member']:
+        new_msg = {"from": msg[content_type]}
+        new_msg["text"] = "*tschüss*" if content_type == 'left_chat_member' else "*hallo*"
+        send_mail(new_msg)
+
 
 def handle_reply_mail(mail):
     global msgs
