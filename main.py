@@ -130,10 +130,11 @@ def handle_reply_mail(mail):
     if the_mail.is_multipart():
         sprint("! Mail is multipart")
         for part in the_mail.walk():
-            sprint("! Mail has part of type: ", part.get_content_type())
-            if part.get_content_type() == "text/plain":
+            part_type = part.get_content_type()
+            sprint("! Mail has part of type:", part_type)
+            if part_type == "text/plain":
                 the_text += part.get_payload()
-            elif not (part.get_content_type().startswith('message/') or part.get_content_type().startswith('multipart/')):
+            elif not (part_type.startswith('message/') or part_type.startswith('multipart/')):
                 filename = part.get_filename('file.bin')
                 if config.OFFLINE_MODE or config.TEST_MODE:
                     sprint("Received file:", filename)
