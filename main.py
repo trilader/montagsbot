@@ -144,7 +144,18 @@ def handle_reply_mail(mail):
                         with open(tmpdir+'/file', 'wb') as fp:
                             fp.write(content)
                         with open(tmpdir+'/file', 'rb') as fp:
-                            bot.sendDocument(config.GROUP_ID, (filename, fp), caption='Gesendet von: {}'.format(the_sender))
+                            if part_type.startswith("image/"):
+                                sprint("! Sending photo")
+                                bot.sendPhoto(config.GROUP_ID, (filename, fp),
+                                              caption="Gesendet von: {}".format(the_sender))
+                            elif part_type.startswith("audio/"):
+                                sprint("! Sending audio")
+                                bot.sendAudio(config.GROUP_ID, (filename, fp),
+                                              caption="Gesendet von: {}".format(the_sender))
+                            else:
+                                sprint("! Sending generic document")
+                                bot.sendDocument(config.GROUP_ID, (filename, fp),
+                                                 caption="Gesendet von: {}".format(the_sender))
                         send_mail({"from": the_sender, "document": tmpdir+'/file'}, telegram=False)
     else:
         the_text = the_mail.get_payload()
