@@ -130,7 +130,7 @@ def handle_reply_mail(mail):
     if the_mail.is_multipart():
         sprint("! Mail is multipart")
         for part in the_mail.walk():
-            part_type = part.get_content_type()
+            part_type = part.get_content_type(decode=True)
             sprint("! Mail has part of type:", part_type)
             if part_type == "text/plain":
                 the_text += part.get_payload()
