@@ -31,8 +31,11 @@ def get_alias(sender):
     return the_alias
 
 
-def send_mail(msg):
-    the_sender = get_alias(msg["from"])
+def send_mail(msg,telegram=True):
+    if telegram:
+        the_sender = get_alias(msg["from"])
+    else:
+        the_sender = msg["from"]
     msgs = []
     for email in config.EMAILS:
         mail = MIMEText("{} sagt: {}".format(the_sender,msg["text"]))
@@ -40,7 +43,8 @@ def send_mail(msg):
         mail["From"] = config.BOT_EMAIL_FROM
         mail["To"] = email
         mail["X-Telegram-Bot"] = config.BOT_NAME
-        mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
+        if telegram:
+            mail["X-Telegram-Original-User"] = str(msg["from"]["id"])
         msgs.append(mail)
     s = smtplib.SMTP("localhost")
     for msg in msgs:
@@ -90,6 +94,7 @@ def handle_reply_mail(mail):
         sprint("The message:",the_msg)
     else:
         bot.sendMessage(config.GROUP_ID,the_msg)
+        send_mail({"from": the_sender, "text": the_text},telegram=False)
 
     return True
 
