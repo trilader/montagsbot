@@ -76,10 +76,10 @@ def send_mail(msg, telegram=True):
 
 def handle_bot_message(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
+    user = msg["from"]
+    uid = msg["from"]["id"]
     if content_type == "text":
         text = msg["text"]
-        user = msg["from"]
-        uid = msg["from"]["id"]
         if chat_type == "group":
             sprint("Group message from {} ({}): {}".format(user, uid, text))
             if config.OFFLINE_MODE or config.TEST_MODE:
@@ -95,10 +95,14 @@ def handle_bot_message(msg):
     elif content_type in ['audio', 'document', 'photo', 'sticker', 'video', 'voice', 'contact', 'location', 'venue']:
         with tempfile.TemporaryDirectory() as tmpdir:
             if content_type == 'photo':
-                bot.download_file(msg['photo'][-1]['file_id'], tmpdir+'/photo')
+                file_id = msg['photo'][-1]['file_id']
+                sprint("Got Photo from {} ({}): {}".format(user, uid, file_id))
+                bot.download_file(file_id, tmpdir+'/photo')
                 msg["photo"] = tmpdir+'/photo'
                 send_mail(msg)
             else:
+                file_id = msg[content_type]['file_id']
+                sprint("Got some content ({}) from {} ({}): {}".format(content_type, user, uid, file_id))
                 bot.download_file(msg[content_type]['file_id'], tmpdir+'/file')
                 msg[content_type] = tmpdir+'/file'
                 send_mail(msg)
@@ -124,7 +128,9 @@ def handle_reply_mail(mail):
  
     the_text = ""
     if the_mail.is_multipart():
+        sprint("! Mail is multipart")
         for part in the_mail.walk():
+            sprint("! Mail has part of type: ", part.get_content_type())
             if part.get_content_type() == "text/plain":
                 the_text += part.get_payload()
             elif not (part.get_content_type().startswith('message/') or part.get_content_type().startswith('multipart/')):
@@ -146,6 +152,7 @@ def handle_reply_mail(mail):
     if config.OFFLINE_MODE or config.TEST_MODE:
         sprint("The message:", the_msg)
     else:
+        sprint("Got message via mail from {} ({}): {}".format(the_sender, the_mail["from"], the_text))
         bot.sendMessage(config.GROUP_ID, the_msg)
         send_mail({"from": the_sender, "text": the_text}, telegram=False)
 
