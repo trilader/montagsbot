@@ -48,16 +48,15 @@ def send_mail(msg, telegram=True):
         mail = MIMEMultipart()
         if "text" in msg:
             mail.attach(MIMEText("{} sagt: {}".format(the_sender, msg["text"])))
-        if "photo" in msg:
-            with open(msg["photo"], 'rb') as fp:
-                mail.attach(MIMEImage(fp.read()))
-        if "audio" in msg:
-            with open(msg["audio"], 'rb') as fp:
-                mail.attach(MIMEAudio(fp.read()))
-        if "voice" in msg:
-            with open(msg["voice"], 'rb') as fp:
-                mail.attach(MIMEAudio(fp.read()))
-        for i in ['document', 'sticker', 'video']:
+        for i in ['photo', 'sticker']:
+            if i in msg:
+                with open(msg[i], 'rb') as fp:
+                    mail.attach(MIMEImage(fp.read()))
+        for i in ['audio', 'voice']:
+            if i in msg:
+                with open(msg[i], 'rb') as fp:
+                    mail.attach(MIMEAudio(fp.read()))
+        for i in ['document', 'video']:
             if i in msg:
                 with open(msg[i], 'rb') as fp:
                     mail.attach(MIMEApplication(fp.read()))
