@@ -126,38 +126,34 @@ def handle_reply_mail(mail):
         the_sender = sender_parts[0]
  
     the_text = ""
-    if the_mail.is_multipart():
-        sprint("! Mail is multipart")
-        for part in the_mail.walk():
-            part_type = part.get_content_type(decode=True)
-            sprint("! Mail has part of type:", part_type)
-            if part_type == "text/plain":
-                the_text += part.get_payload()
-            elif not (part_type.startswith('message/') or part_type.startswith('multipart/')):
-                filename = part.get_filename('file.bin')
-                if config.OFFLINE_MODE or config.TEST_MODE:
-                    sprint("Received file:", filename)
-                else:
-                    content = part.get_payload()
-                    with tempfile.TemporaryDirectory() as tmpdir:
-                        with open(tmpdir+'/file', 'wb') as fp:
-                            fp.write(content)
-                        with open(tmpdir+'/file', 'rb') as fp:
-                            if part_type.startswith("image/"):
-                                sprint("! Sending photo")
-                                bot.sendPhoto(config.GROUP_ID, (filename, fp),
-                                              caption="Gesendet von: {}".format(the_sender))
-                            elif part_type.startswith("audio/"):
-                                sprint("! Sending audio")
-                                bot.sendAudio(config.GROUP_ID, (filename, fp),
-                                              caption="Gesendet von: {}".format(the_sender))
-                            else:
-                                sprint("! Sending generic document")
-                                bot.sendDocument(config.GROUP_ID, (filename, fp),
-                                                 caption="Gesendet von: {}".format(the_sender))
-                        send_mail({"from": the_sender, "document": tmpdir+'/file'}, telegram=False)
-    else:
-        the_text = the_mail.get_payload()
+    for part in the_mail.walk():
+        part_type = part.get_content_type(decode=True)
+        sprint("! Mail has part of type:", part_type)
+        if part_type == "text/plain":
+            the_text += part.get_payload()
+        elif not (part_type.startswith('message/') or part_type.startswith('multipart/')):
+            filename = part.get_filename('file.bin')
+            if config.OFFLINE_MODE or config.TEST_MODE:
+                sprint("Received file:", filename)
+            else:
+                content = part.get_payload()
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    with open(tmpdir+'/file', 'wb') as fp:
+                        fp.write(content)
+                    with open(tmpdir+'/file', 'rb') as fp:
+                        if part_type.startswith("image/"):
+                            sprint("! Sending photo")
+                            bot.sendPhoto(config.GROUP_ID, (filename, fp),
+                                          caption="Gesendet von: {}".format(the_sender))
+                        elif part_type.startswith("audio/"):
+                            sprint("! Sending audio")
+                            bot.sendAudio(config.GROUP_ID, (filename, fp),
+                                          caption="Gesendet von: {}".format(the_sender))
+                        else:
+                            sprint("! Sending generic document")
+                            bot.sendDocument(config.GROUP_ID, (filename, fp),
+                                             caption="Gesendet von: {}".format(the_sender))
+                    send_mail({"from": the_sender, "document": tmpdir+'/file'}, telegram=False)
 
     the_msg = " {} sagt: {}".format(the_sender, the_text)
     if config.OFFLINE_MODE or config.TEST_MODE:
