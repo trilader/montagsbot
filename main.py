@@ -57,7 +57,7 @@ def send_mail(msg, telegram=True):
         if "voice" in msg:
             with open(msg["voice"], 'rb') as fp:
                 mail.attach(MIMEAudio(fp.read()))
-        for i in ['document', 'sticker', 'video', 'contact', 'location', 'venue']:
+        for i in ['document', 'sticker', 'video']:
             if i in msg:
                 with open(msg[i], 'rb') as fp:
                     mail.attach(MIMEApplication(fp.read()))
@@ -92,7 +92,7 @@ def handle_bot_message(msg):
             # bot.sendMessage(config.GROUP_ID, "{} tuschelt!".format(get_alias(msg["from"])))
             # msg["text"] = "*tuschel*"
             # send_mail(msg)
-    elif content_type in ['audio', 'document', 'photo', 'sticker', 'video', 'voice', 'contact', 'location', 'venue']:
+    elif content_type in ['audio', 'document', 'photo', 'sticker', 'video', 'voice']:
         with tempfile.TemporaryDirectory() as tmpdir:
             if content_type == 'photo':
                 file_id = msg['photo'][-1]['file_id']
